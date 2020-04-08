@@ -1,0 +1,1672 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
+\usepackage[unicode=true]{hyperref}
+\hypersetup{
+            pdftitle={Forecasting USD/IDR exchange rate},
+            pdfauthor={Kelvin Christian, Kristoffer Chandra, Vincent Widiaman},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+\title{Forecasting USD/IDR exchange rate}
+\author{Kelvin Christian, Kristoffer Chandra, Vincent Widiaman}
+\date{May 28, 2019}
+
+\begin{document}
+\maketitle
+
+\subsection{I. Introduction}\label{i.-introduction}
+
+The data we choose to analyze is the currency exchange of US Dollar with
+Indonesian Rupiah (Indonesian Rupiah per 1 US dollar). We will also use
+the data of S\&P 500 as the gauge to measure the development of the U.S.
+economy. The reason we choose S\&P 500 is because it can represent the
+condition of the U.S. economy. Our hypothesis says that the increase in
+the dollar price in rupiah is moderately correlated with the growth of
+S\&P 500 index.
+
+\subsection{II. Results}\label{ii.-results}
+
+Import the library for forecasting
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(quantmod)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(forecast)}
+\KeywordTok{library}\NormalTok{(vars)}
+\KeywordTok{library}\NormalTok{(lmtest)}
+\KeywordTok{library}\NormalTok{(timeSeries)}
+\KeywordTok{library}\NormalTok{(rugarch)}
+\KeywordTok{library}\NormalTok{(tseries)}
+\KeywordTok{library}\NormalTok{(Metrics)}
+\KeywordTok{library}\NormalTok{(strucchange)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{a. Time Series plot}\label{a.-time-series-plot}
+
+Using getSymbols function to download the daily data from the Yahoo
+finance. The data that we'll be analyzing is the monthly return data.
+So, we need to first convert from daily prices to monthly return time
+series, and calculate the return.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Get necessary data. We will convert the data to monthly data for compatibility}
+\NormalTok{usd_idr <-}\StringTok{ }\KeywordTok{getSymbols}\NormalTok{(}\StringTok{"IDR=X"}\NormalTok{,}\DataTypeTok{auto.assign =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{from =} \KeywordTok{as.Date}\NormalTok{(}\StringTok{"01/01/2002"}\NormalTok{, }\DataTypeTok{format =} \StringTok{"%m/%d/%Y"}\NormalTok{), }\DataTypeTok{to =} \KeywordTok{as.Date}\NormalTok{(}\StringTok{"05/28/2019"}\NormalTok{, }\DataTypeTok{format =} \StringTok{"%m/%d/%Y"}\NormalTok{))[,}\DecValTok{6}\NormalTok{]}
+\NormalTok{usd_idr <-}\StringTok{ }\KeywordTok{to.monthly}\NormalTok{(usd_idr)[,}\DecValTok{4}\NormalTok{]}
+
+\NormalTok{sp500 <-}\StringTok{ }\KeywordTok{getSymbols}\NormalTok{(}\StringTok{"^GSPC"}\NormalTok{,}\DataTypeTok{auto.assign =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{from =} \KeywordTok{as.Date}\NormalTok{(}\StringTok{"01/01/2002"}\NormalTok{, }\DataTypeTok{format =} \StringTok{"%m/%d/%Y"}\NormalTok{), }\DataTypeTok{to =} \KeywordTok{as.Date}\NormalTok{(}\StringTok{"05/28/2019"}\NormalTok{, }\DataTypeTok{format =} \StringTok{"%m/%d/%Y"}\NormalTok{))[,}\DecValTok{6}\NormalTok{]}
+\NormalTok{sp500 <-}\StringTok{ }\KeywordTok{to.monthly}\NormalTok{(sp500)[,}\DecValTok{4}\NormalTok{]}
+
+\CommentTok{#Convert Data to time series and calculate returns}
+\NormalTok{usd_idr_ts <-}\StringTok{ }\KeywordTok{ts}\NormalTok{(usd_idr, }\DataTypeTok{start =} \DecValTok{2002}\NormalTok{, }\DataTypeTok{freq =} \DecValTok{12}\NormalTok{)}
+\NormalTok{sp500_ts <-}\StringTok{ }\KeywordTok{ts}\NormalTok{(sp500, }\DataTypeTok{start =} \DecValTok{2002}\NormalTok{, }\DataTypeTok{freq =} \DecValTok{12}\NormalTok{)}
+
+\NormalTok{usd_idr_ret=}\DecValTok{100}\OperatorTok{*}\NormalTok{(}\KeywordTok{diff}\NormalTok{(usd_idr_ts)}\OperatorTok{/}\KeywordTok{lag}\NormalTok{(usd_idr_ts, }\OperatorTok{-}\DecValTok{1}\NormalTok{))}
+\NormalTok{sp500_ret=}\DecValTok{100}\OperatorTok{*}\NormalTok{(}\KeywordTok{diff}\NormalTok{(sp500_ts)}\OperatorTok{/}\KeywordTok{lag}\NormalTok{(sp500_ts, }\OperatorTok{-}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Plot the data to get a picture of the return movement
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# plot for USD/IDR exchange rate (monthly)}
+\KeywordTok{plot}\NormalTok{(usd_idr_ret, }\DataTypeTok{main =} \StringTok{"Monthly return of dollars in Indonesian rupiah (IDR)"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/plot-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# plot for S&P500 (monthly)}
+\KeywordTok{plot}\NormalTok{(sp500_ret, }\DataTypeTok{main =} \StringTok{"S&P500 monthly return"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/plot-2.pdf}
+
+Since we are analyzing combined data, it is reasonable to plot both time
+series in one plot. In order to do that, we need to standardize the
+return first so they could fit together.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{((usd_idr_ret}\OperatorTok{-}\KeywordTok{mean}\NormalTok{(usd_idr_ret))}\OperatorTok{/}\KeywordTok{sd}\NormalTok{(usd_idr_ret), }\DataTypeTok{main =} \StringTok{"USD/IDR vs. S&P 500 returns"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"Returns"}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{((sp500_ret}\OperatorTok{-}\KeywordTok{mean}\NormalTok{(sp500_ret))}\OperatorTok{/}\KeywordTok{sd}\NormalTok{(sp500_ret), }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/combined plot-1.pdf}
+
+Looking at this combined plot, we can see that at year 2009, the returns
+for S\&P 500 spikes down while the returns for USD/IDR spikes up. We
+initially predicted that the return of S\&P 500 may explain the return
+of USD/IDR in a direct relationship. But this plot contradicts our
+initial assumption because the returns of dollar price spikes up when
+the returns of S\&P 500 spikes down. They seem to have an inverse
+relationship.
+
+Then, we now consider the plot of ACF and PACF for both USD/IDR and S\&P
+500 returns to do further analysis and forecast.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(usd_idr_ret, }\DataTypeTok{main =} \StringTok{"USD/IDR Returns"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/tsdisplay usd/idr-1.pdf}
+
+Even though it looks like white noise, we can see that the ACF and PACF
+for the USD/IDR spikes at lag 2 while spikes at the other lags are not
+different from 0. Thus, it is reasonable to consider ARMA(2,2) as a good
+model for now.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(sp500_ret, }\DataTypeTok{main=}\StringTok{"S&P500 Returns"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/tsdisplay s\&p500-1.pdf}
+
+The ACF and PACF for S\&P500 monthly returns don't have any significant
+spikes at all lags. Our conclusion is that the returns follows white
+noise model.
+
+\subsubsection{b. Model fitting}\label{b.-model-fitting}
+
+Since the data that we're dealing with is the monthly returns data, it
+is covariance stationary. They have the same mean, or we could say that
+they have mean reversion. So both of our data doesn't have any
+significant linear trend. The only thing we consider is the seasonality
+and cycles component. Now, we will explore the model to find the best
+fit.
+
+\paragraph{Model for USD/IDR returns}\label{model-for-usdidr-returns}
+
+\subparagraph{Periodic trend}\label{periodic-trend}
+
+The first model that we propose is the periodic trend for detecting
+seasonality. We created the variable time as a predictor and we use
+linear regression of returns with respect to sin and cos of time.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# specify the index}
+\NormalTok{t =}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DecValTok{2002} \OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{1}\OperatorTok{/}\DecValTok{12}\NormalTok{), }\DecValTok{2019} \OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{4}\OperatorTok{/}\DecValTok{12}\NormalTok{), }\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(usd_idr_ret))}
+
+\CommentTok{# periodic}
+\NormalTok{mod_period_usdidr <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(usd_idr_ret }\OperatorTok{~}\StringTok{ }\KeywordTok{I}\NormalTok{(}\KeywordTok{sin}\NormalTok{(}\DecValTok{2}\OperatorTok{*}\NormalTok{pi}\OperatorTok{*}\NormalTok{t)) }\OperatorTok{+}\StringTok{ }\KeywordTok{I}\NormalTok{(}\KeywordTok{cos}\NormalTok{(}\DecValTok{2}\OperatorTok{*}\NormalTok{pi}\OperatorTok{*}\NormalTok{t)))}
+\KeywordTok{summary}\NormalTok{(mod_period_usdidr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = usd_idr_ret ~ I(sin(2 * pi * t)) + I(cos(2 * pi * 
+##     t)))
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -14.2753  -1.5022  -0.0644   1.3571  26.9193 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)
+## (Intercept)          0.2365     0.2545   0.929    0.354
+## I(sin(2 * pi * t))  -0.5318     0.3587  -1.483    0.140
+## I(cos(2 * pi * t))  -0.3765     0.3612  -1.042    0.298
+## 
+## Residual standard error: 3.67 on 205 degrees of freedom
+## Multiple R-squared:  0.01583,    Adjusted R-squared:  0.006229 
+## F-statistic: 1.649 on 2 and 205 DF,  p-value: 0.1948
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(usd_idr_ret, }\DataTypeTok{main =} \StringTok{"USD/IDR returns"}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(mod_period_usdidr}\OperatorTok{$}\NormalTok{fit }\OperatorTok{~}\StringTok{ }\NormalTok{t, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/periodic usd/idr plot-1.pdf}
+
+The result is not statistically significant, independently and jointly.
+
+\subparagraph{Seasonal Dummy trend}\label{seasonal-dummy-trend}
+
+Since we're using the monthly data, we could use dummy variable for each
+month to know whether some month is significantly different from the
+others.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_seasonal_usdidr <-}\StringTok{ }\KeywordTok{tslm}\NormalTok{(usd_idr_ret }\OperatorTok{~}\StringTok{ }\NormalTok{season)}
+\KeywordTok{summary}\NormalTok{(mod_seasonal_usdidr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## tslm(formula = usd_idr_ret ~ season)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -13.9265  -1.3625  -0.0018   1.2764  26.1643 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)  
+## (Intercept)  -0.6842     0.9025  -0.758   0.4493  
+## season2       0.6766     1.2585   0.538   0.5915  
+## season3       0.3708     1.2585   0.295   0.7686  
+## season4      -0.1924     1.2585  -0.153   0.8786  
+## season5       1.0864     1.2585   0.863   0.3891  
+## season6       1.0732     1.2764   0.841   0.4015  
+## season7       0.6477     1.2764   0.507   0.6124  
+## season8       2.1465     1.2764   1.682   0.0942 .
+## season9       1.7600     1.2764   1.379   0.1695  
+## season10      1.0023     1.2764   0.785   0.4333  
+## season11      0.8443     1.2764   0.661   0.5091  
+## season12      1.6155     1.2764   1.266   0.2071  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 3.721 on 196 degrees of freedom
+## Multiple R-squared:  0.03255,    Adjusted R-squared:  -0.02175 
+## F-statistic: 0.5994 on 11 and 196 DF,  p-value: 0.828
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(usd_idr_ret, }\DataTypeTok{main =} \StringTok{"USD/IDR returns"}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(mod_seasonal_usdidr}\OperatorTok{$}\NormalTok{fit, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/seasonal usd/idr plot-1.pdf}
+
+All seasonal dummy variables are not statistically significant and the
+joint hypothesis test is also not statistically significant, therefore
+we conclude that there is no seasonal component in USD/IDR returns.
+
+\subparagraph{ARMA (2,2)}\label{arma-22}
+
+Using our first hypothesis, we can try to fit ARMA(2,2) because the ACF
+and PACF spikes at lag 2. The function that we're using is arima
+function. However, the model object from arima function doesn't tell us
+the significant level of the coefficient. So we can create a function to
+analyze the significant level before summarizing the model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# function to give summary for arima model}
+\NormalTok{arima_summary <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(model)\{}
+\NormalTok{  coef_arma <-}\StringTok{ }\NormalTok{model}\OperatorTok{$}\NormalTok{coef }\CommentTok{# coefficient}
+\NormalTok{  se_arma <-}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(}\KeywordTok{diag}\NormalTok{(model}\OperatorTok{$}\NormalTok{var.coef)) }\CommentTok{# se}
+\NormalTok{  t_arma <-}\StringTok{ }\NormalTok{coef_arma }\OperatorTok{/}\StringTok{ }\NormalTok{se_arma }\CommentTok{# t stats}
+\NormalTok{  p_arma <-}\StringTok{ }\KeywordTok{pnorm}\NormalTok{(}\KeywordTok{abs}\NormalTok{(t_arma), }\DataTypeTok{lower.tail =} \OtherTok{FALSE}\NormalTok{) }\CommentTok{# p values}
+  \KeywordTok{cbind}\NormalTok{(}\StringTok{"coef"}\NormalTok{ =}\StringTok{ }\NormalTok{coef_arma, }\StringTok{"se"}\NormalTok{ =}\StringTok{ }\NormalTok{se_arma, }\StringTok{"t"}\NormalTok{ =}\StringTok{ }\NormalTok{t_arma, }\StringTok{"p"}\NormalTok{ =}\StringTok{ }\KeywordTok{round}\NormalTok{(p_arma, }\DecValTok{5}\NormalTok{))}
+\NormalTok{\}}
+
+\NormalTok{mod_arma_22_usdidr <-}\StringTok{ }\KeywordTok{arima}\NormalTok{(usd_idr_ret, }\DataTypeTok{order =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{2}\NormalTok{)) }
+\KeywordTok{arima_summary}\NormalTok{(mod_arma_22_usdidr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 coef        se         t       p
+## ar1        0.5942252 0.1288501  4.611756 0.00000
+## ar2       -0.7806750 0.1129330 -6.912725 0.00000
+## ma1       -0.7478787 0.1376726 -5.432300 0.00000
+## ma2        0.7849849 0.1085850  7.229218 0.00000
+## intercept  0.2233734 0.2153731  1.037147 0.14983
+\end{verbatim}
+
+It turns out that ARMA (2,2) does a great job. We can see that all the
+coefficients are statistically significant from the p-values.
+
+\subparagraph{ARMA (p,q)}\label{arma-pq}
+
+Another thing to consider is fitting another combination (p,q) of ARMA
+model. To do that, we use for loop to fit all combinations of the order
+of ARMA, then we compare the model using AIC as our measurement. We
+first creates an empty matrix to store the AIC for each combination.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#For loop to find best ARMA(p,q)}
+\NormalTok{m =}\StringTok{ }\DecValTok{4} \CommentTok{# combination for p = 1,2,3,4 with q = 1,2,3,4}
+
+\NormalTok{AIC_mat <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ m, }\DataTypeTok{nrow =}\NormalTok{ m)}
+\KeywordTok{rownames}\NormalTok{(AIC_mat) <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\NormalTok{m}
+\KeywordTok{colnames}\NormalTok{(AIC_mat) <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\NormalTok{m}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+\NormalTok{    AIC_mat[i,j] <-}\StringTok{ }\KeywordTok{arima}\NormalTok{(usd_idr_ret, }\DataTypeTok{order =} \KeywordTok{c}\NormalTok{(i,}\DecValTok{0}\NormalTok{,j))}\OperatorTok{$}\NormalTok{aic}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+
+\NormalTok{AIC_mat }\CommentTok{# All AIC's }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          1        2        3        4
+## 1 1135.199 1134.382 1134.395 1132.235
+## 2 1132.849 1129.949 1131.145 1134.142
+## 3 1133.961 1131.264 1132.851 1134.619
+## 4 1133.953 1132.894 1134.625 1134.432
+\end{verbatim}
+
+We can see that ARMA(2,2) has the smallest AIC compared to the others,
+we could also try ARMA(2,3) and ARMA(3,2) because their AIC are closed
+compared to ARMA(2,2)
+
+ARMA(2,3)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_arma_23_usdidr <-}\StringTok{ }\KeywordTok{arima}\NormalTok{(usd_idr_ret, }\DataTypeTok{order =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{)) }
+\KeywordTok{arima_summary}\NormalTok{(mod_arma_23_usdidr) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                  coef         se          t       p
+## ar1        0.56566955 0.16309572  3.4683287 0.00026
+## ar2       -0.66843872 0.18598669 -3.5940137 0.00016
+## ma1       -0.68332087 0.17443015 -3.9174470 0.00004
+## ma2        0.62318022 0.22549695  2.7635860 0.00286
+## ma3        0.09139671 0.09619065  0.9501621 0.17101
+## intercept  0.22074499 0.22982845  0.9604772 0.16841
+\end{verbatim}
+
+Here the coefficient for ma3 is not significant.
+
+ARMA(3,2)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_arma_32_usdidr <-}\StringTok{ }\KeywordTok{arima}\NormalTok{(usd_idr_ret, }\DataTypeTok{order =} \KeywordTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{2}\NormalTok{)) }
+\KeywordTok{arima_summary}\NormalTok{(mod_arma_32_usdidr) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                  coef        se          t       p
+## ar1        0.67277727 0.1661727  4.0486631 0.00003
+## ar2       -0.74630895 0.1374486 -5.4297303 0.00000
+## ar3        0.07826766 0.0913042  0.8572186 0.19566
+## ma1       -0.79515349 0.1534973 -5.1802454 0.00000
+## ma2        0.72405793 0.1526050  4.7446528 0.00000
+## intercept  0.22104547 0.2294538  0.9633549 0.16768
+\end{verbatim}
+
+And here, the coefficient for ar3 is not statistically significant.
+
+For now, we conclude that ARMA(2,2) is the best model because all
+variables are statistically significant.
+
+\subparagraph{Auto Arima}\label{auto-arima}
+
+To check what R think the best model is, we can use auto arima function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_autoarima_usdidr =}\StringTok{ }\KeywordTok{auto.arima}\NormalTok{(usd_idr_ret)}
+\NormalTok{mod_autoarima_usdidr}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Series: usd_idr_ret 
+## ARIMA(3,0,2) with zero mean 
+## 
+## Coefficients:
+##          ar1      ar2     ar3      ma1     ma2
+##       0.6864  -0.7438  0.0866  -0.8039  0.7213
+## s.e.  0.1645   0.1400  0.0906   0.1521  0.1539
+## 
+## sigma^2 estimated as 12.95:  log likelihood=-559.09
+## AIC=1130.18   AICc=1130.6   BIC=1150.2
+\end{verbatim}
+
+The auto arima agrees with ARMA(2,2) with additional seasonal AR(1).
+Next, we check the significant level for the seasonal ar coefficient.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{arima_summary}\NormalTok{(mod_autoarima_usdidr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            coef         se          t       p
+## ar1  0.68637374 0.16446880  4.1732763 0.00002
+## ar2 -0.74375152 0.13997168 -5.3135857 0.00000
+## ar3  0.08660883 0.09063615  0.9555661 0.16965
+## ma1 -0.80386159 0.15209941 -5.2851065 0.00000
+## ma2  0.72127158 0.15389652  4.6867309 0.00000
+\end{verbatim}
+
+The s-ar(1) coefficient is not statistically significant. We could also
+compare the AIC with ARMA(2,2) to check which one is better.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{AIC}\NormalTok{(mod_arma_22_usdidr, mod_autoarima_usdidr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                      df      AIC
+## mod_arma_22_usdidr    6 1129.949
+## mod_autoarima_usdidr  6 1130.177
+\end{verbatim}
+
+The AIC shows that ARMA(2,2) is still a better model than ARMA(2,2) +
+S-AR(1). Therefore we will use ARMA(2,2) model for USD/IDR returns.
+
+\paragraph{Model for S\&P500 returns}\label{model-for-sp500-returns}
+
+Since the ACF and PACF of this data tells us that it is white noise, we
+can't make a guess. However, since the two dataset are somewhat have
+similar characteristic, we would choose ARMA(2,2) for the S\&P500 as
+well.
+
+\subparagraph{ARMA(2,2)}\label{arma22}
+
+We analyze the significance of ARMA(2,2) coefficients in the similar way
+as the USD/IDR,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_arma_22_sp500 <-}\StringTok{ }\KeywordTok{arima}\NormalTok{(sp500_ret, }\DataTypeTok{order =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{2}\NormalTok{)) }
+\KeywordTok{summary}\NormalTok{(mod_arma_22_sp500)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## arima(x = sp500_ret, order = c(2, 0, 2))
+## 
+## Coefficients:
+##           ar1      ar2     ma1     ma2  intercept
+##       -1.4880  -0.8523  1.5186  0.8498     0.5203
+## s.e.   0.3931   0.5264  0.3575  0.5246     0.2819
+## 
+## sigma^2 estimated as 16.25:  log likelihood = -585.17,  aic = 1182.33
+## 
+## Training set error measures:
+##                       ME     RMSE      MAE      MPE    MAPE      MASE
+## Training set 0.003601198 4.031707 2.992703 58.15256 190.398 0.7301812
+##                    ACF1
+## Training set 0.07089607
+\end{verbatim}
+
+The standard errors are NaN in this case so we cannot analyze the
+significance of each coefficient parameters.
+
+\subparagraph{Auto Arima}\label{auto-arima-1}
+
+Then, we cross-check with auto arima to see which one is better,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_autoarima_sp500 =}\StringTok{ }\KeywordTok{auto.arima}\NormalTok{(sp500_ret)}
+\NormalTok{mod_autoarima_sp500}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Series: sp500_ret 
+## ARIMA(2,0,2)(1,0,0)[12] with non-zero mean 
+## 
+## Coefficients:
+##           ar1      ar2     ma1     ma2     sar1    mean
+##       -0.2600  -0.9333  0.3413  0.9380  -0.0265  0.5251
+## s.e.   0.0507   0.0453  0.0428  0.0532   0.0800  0.2776
+## 
+## sigma^2 estimated as 16.03:  log likelihood=-580.97
+## AIC=1175.93   AICc=1176.49   BIC=1199.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{arima_summary}\NormalTok{(mod_autoarima_sp500)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                  coef         se           t       p
+## ar1       -0.25999329 0.05065603  -5.1325238 0.00000
+## ar2       -0.93334704 0.04530785 -20.6001185 0.00000
+## ma1        0.34134679 0.04284832   7.9663986 0.00000
+## ma2        0.93795430 0.05316619  17.6419310 0.00000
+## sar1      -0.02652206 0.07995573  -0.3317093 0.37005
+## intercept  0.52508869 0.27761985   1.8913946 0.02929
+\end{verbatim}
+
+We can see that the coefficients for AR and MA order 1,2 are
+statistically significant. However, S-AR(1) is not statistically
+significant. ARMA(2,2) may be a good model.
+
+\paragraph{Analyzing GARCH(p,q)}\label{analyzing-garchpq}
+
+Although our current model, ARMA(2,2), may be good, we still dont know
+if GARCH is needed to better fit the model.
+
+\subparagraph{GARCH(p,q) for USD/IDR}\label{garchpq-for-usdidr}
+
+First, we look at the residuals of the USD/IDR ARMA(2,2),
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+It seems that the residuals are all almost zero which is a good signal.
+Now, we square the residuals to detect any need for GARCH.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Analyze GARCH}
+\KeywordTok{tsdisplay}\NormalTok{(mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res}\OperatorTok{*}\NormalTok{mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+We can see that in the squared residuals, there are still spikes which
+indicates the need for GARCH model. We now find the best p and q for
+GARCH(p,q) using for loop and compare their MSE and MAE.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Use for loop to find best GARCH(p,q)}
+\NormalTok{m <-}\StringTok{ }\DecValTok{6}
+\NormalTok{garch_mse_mat <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ m, }\DataTypeTok{nrow =}\NormalTok{ m)}
+\NormalTok{garch_mae_mat <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ m, }\DataTypeTok{nrow =}\NormalTok{ m)}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+\NormalTok{    model <-}\StringTok{ }\KeywordTok{ugarchspec}\NormalTok{(}
+      \DataTypeTok{variance.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{model =} \StringTok{"sGARCH"}\NormalTok{, }\DataTypeTok{garchOrder =} \KeywordTok{c}\NormalTok{(i, j)),}
+      \DataTypeTok{mean.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), }\DataTypeTok{include.mean =} \OtherTok{TRUE}\NormalTok{),}
+      \DataTypeTok{distribution.model =} \StringTok{"sstd"}\NormalTok{)}
+    
+\NormalTok{    modelfit <-}\StringTok{ }\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{spec=}\NormalTok{model,}\DataTypeTok{data=}\NormalTok{usd_idr_ret)}
+    
+\NormalTok{    a <-}\StringTok{ }\KeywordTok{attributes}\NormalTok{(modelfit)}
+    
+\NormalTok{    garch_mse_mat[i,j] <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(usd_idr_ret, a}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values)}
+\NormalTok{    garch_mae_mat[i,j] <-}\StringTok{ }\KeywordTok{mae}\NormalTok{(usd_idr_ret, a}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values)}
+    
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\NormalTok{garch_mae_mat}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]
+## [1,] 2.133675 2.134206 2.134818 2.135488 2.133607 2.133689
+## [2,] 2.133674 2.134208 2.135003 2.143408 2.135454 2.134794
+## [3,] 2.133489 2.133868 2.135004 2.143408 2.135879 2.134791
+## [4,] 2.133061 2.132980 2.134151 2.143409 2.135884 2.134790
+## [5,] 2.136912 2.136917 2.133900 2.144341 2.135941 2.133958
+## [6,] 2.143552 2.143552 2.143548 2.143556 2.143545 2.143558
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{garch_mse_mat}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]
+## [1,] 12.79735 12.81023 12.80698 12.82717 12.82299 12.84104
+## [2,] 12.79739 12.81022 12.79736 12.83389 12.84214 12.84035
+## [3,] 12.79763 12.81009 12.79738 12.83388 12.84734 12.84033
+## [4,] 12.81302 12.82044 12.80967 12.83390 12.84736 12.84032
+## [5,] 12.81934 12.81937 12.80673 12.83951 12.84530 12.83775
+## [6,] 12.87486 12.87486 12.87486 12.87490 12.87483 12.87491
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{which}\NormalTok{(garch_mae_mat }\OperatorTok{==}\StringTok{ }\KeywordTok{min}\NormalTok{(garch_mae_mat), }\DataTypeTok{arr.ind =} \OtherTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      row col
+## [1,]   4   2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{which}\NormalTok{(garch_mse_mat }\OperatorTok{==}\StringTok{ }\KeywordTok{min}\NormalTok{(garch_mse_mat), }\DataTypeTok{arr.ind =} \OtherTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      row col
+## [1,]   1   1
+\end{verbatim}
+
+From the for loop summary, we find that the best value for p,q is 4 and
+1 respectively. Thus, we use GARCH(4,1) for the model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{garch_mod=}\KeywordTok{ugarchspec}\NormalTok{(}
+  \DataTypeTok{variance.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{model =} \StringTok{"sGARCH"}\NormalTok{, }\DataTypeTok{garchOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{)),}
+  \DataTypeTok{mean.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), }\DataTypeTok{include.mean =} \OtherTok{TRUE}\NormalTok{),}
+  \DataTypeTok{distribution.model =} \StringTok{"sstd"}\NormalTok{)}
+
+\CommentTok{# Fit the model}
+\NormalTok{garchfit41_usdidr =}\StringTok{ }\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{spec=}\NormalTok{garch_mod, }\DataTypeTok{data=}\NormalTok{usd_idr_ret)}
+\NormalTok{garchfit41_usdidr}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## *---------------------------------*
+## *          GARCH Model Fit        *
+## *---------------------------------*
+## 
+## Conditional Variance Dynamics    
+## -----------------------------------
+## GARCH Model  : sGARCH(4,1)
+## Mean Model   : ARFIMA(2,0,2)
+## Distribution : sstd 
+## 
+## Optimal Parameters
+## ------------------------------------
+##         Estimate  Std. Error   t value Pr(>|t|)
+## mu      0.266143    0.131951  2.016984 0.043697
+## ar1     0.527715    0.100986  5.225619 0.000000
+## ar2    -0.709405    0.132573 -5.351073 0.000000
+## ma1    -0.671211    0.115201 -5.826415 0.000000
+## ma2     0.751433    0.103173  7.283198 0.000000
+## omega   1.270240    1.374173  0.924367 0.355295
+## alpha1  0.644136    0.231406  2.783574 0.005376
+## alpha2  0.000000    0.499419  0.000000 1.000000
+## alpha3  0.000000    0.237680  0.000000 1.000000
+## alpha4  0.006715    0.105199  0.063827 0.949108
+## beta1   0.348149    0.409986  0.849172 0.395786
+## skew    1.121446    0.094075 11.920795 0.000000
+## shape   4.342739    1.193692  3.638074 0.000275
+## 
+## Robust Standard Errors:
+##         Estimate  Std. Error   t value Pr(>|t|)
+## mu      0.266143    0.180912  1.471122 0.141258
+## ar1     0.527715    0.111614  4.728051 0.000002
+## ar2    -0.709405    0.200267 -3.542300 0.000397
+## ma1    -0.671211    0.161982 -4.143737 0.000034
+## ma2     0.751433    0.147575  5.091865 0.000000
+## omega   1.270240    4.836345  0.262645 0.792824
+## alpha1  0.644136    0.309526  2.081043 0.037430
+## alpha2  0.000000    1.608281  0.000000 1.000000
+## alpha3  0.000000    0.605965  0.000000 1.000000
+## alpha4  0.006715    0.231442  0.029012 0.976855
+## beta1   0.348149    1.917842  0.181531 0.855950
+## skew    1.121446    0.093506 11.993297 0.000000
+## shape   4.342739    1.473411  2.947405 0.003205
+## 
+## LogLikelihood : -479.8734 
+## 
+## Information Criteria
+## ------------------------------------
+##                    
+## Akaike       4.7392
+## Bayes        4.9478
+## Shibata      4.7320
+## Hannan-Quinn 4.8235
+## 
+## Weighted Ljung-Box Test on Standardized Residuals
+## ------------------------------------
+##                          statistic p-value
+## Lag[1]                       4.383 0.03631
+## Lag[2*(p+q)+(p+q)-1][11]     6.491 0.20443
+## Lag[4*(p+q)+(p+q)-1][19]     9.282 0.59049
+## d.o.f=4
+## H0 : No serial correlation
+## 
+## Weighted Ljung-Box Test on Standardized Squared Residuals
+## ------------------------------------
+##                          statistic p-value
+## Lag[1]                      0.6412  0.4233
+## Lag[2*(p+q)+(p+q)-1][14]    2.0079  0.9910
+## Lag[4*(p+q)+(p+q)-1][24]    3.4948  0.9989
+## d.o.f=5
+## 
+## Weighted ARCH LM Tests
+## ------------------------------------
+##              Statistic Shape Scale P-Value
+## ARCH Lag[6]    0.04648 0.500 2.000  0.8293
+## ARCH Lag[8]    0.30961 1.480 1.774  0.9480
+## ARCH Lag[10]   0.59016 2.424 1.650  0.9790
+## 
+## Nyblom stability test
+## ------------------------------------
+## Joint Statistic:  2.9865
+## Individual Statistics:              
+## mu     0.49503
+## ar1    0.19737
+## ar2    0.13984
+## ma1    0.28582
+## ma2    0.07738
+## omega  0.34806
+## alpha1 0.05219
+## alpha2 0.04413
+## alpha3 0.04814
+## alpha4 0.05778
+## beta1  0.08343
+## skew   0.26815
+## shape  0.06576
+## 
+## Asymptotic Critical Values (10% 5% 1%)
+## Joint Statistic:          2.89 3.15 3.69
+## Individual Statistic:     0.35 0.47 0.75
+## 
+## Sign Bias Test
+## ------------------------------------
+##                    t-value   prob sig
+## Sign Bias           1.5102 0.1325    
+## Negative Sign Bias  0.5809 0.5620    
+## Positive Sign Bias  0.2341 0.8151    
+## Joint Effect        2.4818 0.4786    
+## 
+## 
+## Adjusted Pearson Goodness-of-Fit Test:
+## ------------------------------------
+##   group statistic p-value(g-1)
+## 1    20     12.77       0.8502
+## 2    30     19.02       0.9208
+## 3    40     29.69       0.8587
+## 4    50     41.04       0.7835
+## 
+## 
+## Elapsed time : 0.9534738
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{att_garch_usdidr =}\StringTok{ }\KeywordTok{attributes}\NormalTok{(garchfit41_usdidr)}
+ \CommentTok{# standardized residuals}
+\KeywordTok{tsdisplay}\NormalTok{((att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{*}\NormalTok{att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals)}\OperatorTok{/}\NormalTok{att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{var,}
+          \DataTypeTok{main =} \StringTok{"Standardized Residuals for GARCH(4,1)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+From the ACF PACF we can clearly see that the GARCH model eliminates the
+remaining spikes of the residual. Thus, we use GARCH(4,1)
+
+\subparagraph{GARCH(p,q) for S\&P500}\label{garchpq-for-sp500}
+
+Now, we will find the best GARCH(p,q) value for S\&P500 using the same
+approach. First, we look at the residual and squared residuals.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res}\OperatorTok{*}\NormalTok{mod_arma_22_usdidr}\OperatorTok{$}\NormalTok{res)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-7-2.pdf}
+
+We see similar pattern as before, there are still spikes in the model.
+Thus, we look for GARCH.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{m <-}\StringTok{ }\DecValTok{6}
+\NormalTok{garch_mse_mat <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ m, }\DataTypeTok{nrow =}\NormalTok{ m)}
+\NormalTok{garch_mae_mat <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ m, }\DataTypeTok{nrow =}\NormalTok{ m)}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{m)\{}
+\NormalTok{    model <-}\StringTok{ }\KeywordTok{ugarchspec}\NormalTok{(}
+      \DataTypeTok{variance.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{model =} \StringTok{"sGARCH"}\NormalTok{, }\DataTypeTok{garchOrder =} \KeywordTok{c}\NormalTok{(i, j)),}
+      \DataTypeTok{mean.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), }\DataTypeTok{include.mean =} \OtherTok{TRUE}\NormalTok{),}
+      \DataTypeTok{distribution.model =} \StringTok{"sstd"}\NormalTok{)}
+    
+\NormalTok{    modelfit <-}\StringTok{ }\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{spec=}\NormalTok{model,}\DataTypeTok{data=}\NormalTok{sp500_ret)}
+    
+\NormalTok{    a <-}\StringTok{ }\KeywordTok{attributes}\NormalTok{(modelfit)}
+    
+\NormalTok{    garch_mse_mat[i,j] <-}\StringTok{ }\KeywordTok{mse}\NormalTok{(sp500_ret, a}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values)}
+\NormalTok{    garch_mae_mat[i,j] <-}\StringTok{ }\KeywordTok{mae}\NormalTok{(sp500_ret, a}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values)}
+    
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\NormalTok{garch_mae_mat}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]
+## [1,] 2.991512 2.943396 2.942555 2.943204 2.942970 2.943431
+## [2,] 3.013499 2.937167 2.986919 2.937071 2.946621 2.994040
+## [3,] 2.987362 2.987067 2.938959 2.989354 2.992827 2.939377
+## [4,] 2.943035 2.942203 2.987123 2.989339 2.992834 2.995020
+## [5,] 2.988924 2.942382 2.988132 2.942414 2.992793 2.995028
+## [6,] 2.946121 2.949412 2.997425 2.997409 2.993069 2.997545
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{garch_mse_mat}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]
+## [1,] 16.52165 16.08806 16.09222 16.09005 16.09269 16.08826
+## [2,] 17.12588 16.07988 16.52122 16.07959 16.11396 16.55184
+## [3,] 16.50239 16.48584 16.07816 16.50455 16.52408 16.07845
+## [4,] 16.07193 16.07088 16.52709 16.50485 16.52438 16.55957
+## [5,] 16.51204 16.06874 16.52534 16.06832 16.52459 16.55952
+## [6,] 16.06714 16.08208 16.48486 16.48486 16.51965 16.55959
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{which}\NormalTok{(garch_mae_mat }\OperatorTok{==}\StringTok{ }\KeywordTok{min}\NormalTok{(garch_mae_mat), }\DataTypeTok{arr.ind =} \OtherTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      row col
+## [1,]   2   4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{which}\NormalTok{(garch_mse_mat }\OperatorTok{==}\StringTok{ }\KeywordTok{min}\NormalTok{(garch_mse_mat), }\DataTypeTok{arr.ind =} \OtherTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      row col
+## [1,]   6   1
+\end{verbatim}
+
+We can see that the smallest error in the analysis above is at
+GARCH(2,1) and GARCH(2,6). Thus, in this case we use GARCH(2,1) as it is
+a simpler model with less parameters.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{garch_mod=}\KeywordTok{ugarchspec}\NormalTok{(}
+  \DataTypeTok{variance.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{model =} \StringTok{"sGARCH"}\NormalTok{, }\DataTypeTok{garchOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{)),}
+  \DataTypeTok{mean.model =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), }\DataTypeTok{include.mean =} \OtherTok{TRUE}\NormalTok{),}
+  \DataTypeTok{distribution.model =} \StringTok{"sstd"}\NormalTok{)}
+
+\CommentTok{# Fit the model}
+\NormalTok{garchfit21_sp500 =}\StringTok{ }\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{spec=}\NormalTok{garch_mod, }\DataTypeTok{data=}\NormalTok{sp500_ret)}
+\NormalTok{garchfit21_sp500}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## *---------------------------------*
+## *          GARCH Model Fit        *
+## *---------------------------------*
+## 
+## Conditional Variance Dynamics    
+## -----------------------------------
+## GARCH Model  : sGARCH(2,1)
+## Mean Model   : ARFIMA(2,0,2)
+## Distribution : sstd 
+## 
+## Optimal Parameters
+## ------------------------------------
+##         Estimate  Std. Error  t value Pr(>|t|)
+## mu       0.81037    0.187949  4.31165 0.000016
+## ar1     -0.91829    0.203255 -4.51793 0.000006
+## ar2     -0.63845    0.145851 -4.37737 0.000012
+## ma1      0.80230    0.206904  3.87763 0.000105
+## ma2      0.59329    0.167591  3.54010 0.000400
+## omega    1.81344    0.906046  2.00149 0.045340
+## alpha1   0.16392    0.074366  2.20416 0.027513
+## alpha2   0.18618    0.139206  1.33745 0.181075
+## beta1    0.52794    0.153799  3.43267 0.000598
+## skew     0.64422    0.097111  6.63387 0.000000
+## shape   59.99871  139.515459  0.43005 0.667159
+## 
+## Robust Standard Errors:
+##         Estimate  Std. Error  t value Pr(>|t|)
+## mu       0.81037    0.174789  4.63629 0.000004
+## ar1     -0.91829    0.100470 -9.13998 0.000000
+## ar2     -0.63845    0.092131 -6.92976 0.000000
+## ma1      0.80230    0.117328  6.83808 0.000000
+## ma2      0.59329    0.123355  4.80959 0.000002
+## omega    1.81344    1.061741  1.70799 0.087639
+## alpha1   0.16392    0.068356  2.39797 0.016486
+## alpha2   0.18618    0.152434  1.22139 0.221940
+## beta1    0.52794    0.174976  3.01723 0.002551
+## skew     0.64422    0.102232  6.30160 0.000000
+## shape   59.99871   72.400028  0.82871 0.407268
+## 
+## LogLikelihood : -551.6404 
+## 
+## Information Criteria
+## ------------------------------------
+##                    
+## Akaike       5.4100
+## Bayes        5.5865
+## Shibata      5.4048
+## Hannan-Quinn 5.4814
+## 
+## Weighted Ljung-Box Test on Standardized Residuals
+## ------------------------------------
+##                          statistic p-value
+## Lag[1]                       2.982  0.0842
+## Lag[2*(p+q)+(p+q)-1][11]     5.741  0.6564
+## Lag[4*(p+q)+(p+q)-1][19]     9.153  0.6124
+## d.o.f=4
+## H0 : No serial correlation
+## 
+## Weighted Ljung-Box Test on Standardized Squared Residuals
+## ------------------------------------
+##                          statistic p-value
+## Lag[1]                      0.3271  0.5674
+## Lag[2*(p+q)+(p+q)-1][8]     2.4989  0.7761
+## Lag[4*(p+q)+(p+q)-1][14]    5.2857  0.7334
+## d.o.f=3
+## 
+## Weighted ARCH LM Tests
+## ------------------------------------
+##             Statistic Shape Scale P-Value
+## ARCH Lag[4]     2.225 0.500 2.000  0.1358
+## ARCH Lag[6]     2.727 1.461 1.711  0.3506
+## ARCH Lag[8]     3.097 2.368 1.583  0.5254
+## 
+## Nyblom stability test
+## ------------------------------------
+## Joint Statistic:  2.2809
+## Individual Statistics:              
+## mu     0.07771
+## ar1    0.21997
+## ar2    0.08912
+## ma1    0.23972
+## ma2    0.18989
+## omega  0.05436
+## alpha1 0.04584
+## alpha2 0.03764
+## beta1  0.06020
+## skew   0.06990
+## shape  0.25703
+## 
+## Asymptotic Critical Values (10% 5% 1%)
+## Joint Statistic:          2.49 2.75 3.27
+## Individual Statistic:     0.35 0.47 0.75
+## 
+## Sign Bias Test
+## ------------------------------------
+##                    t-value    prob sig
+## Sign Bias           0.6089 0.54328    
+## Negative Sign Bias  1.1907 0.23517    
+## Positive Sign Bias  2.1757 0.03073  **
+## Joint Effect        9.2070 0.02666  **
+## 
+## 
+## Adjusted Pearson Goodness-of-Fit Test:
+## ------------------------------------
+##   group statistic p-value(g-1)
+## 1    20     15.46       0.6928
+## 2    30     29.69       0.4295
+## 3    40     37.00       0.5614
+## 4    50     51.13       0.3898
+## 
+## 
+## Elapsed time : 0.598032
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{att_garch_sp500 =}\StringTok{ }\KeywordTok{attributes}\NormalTok{(garchfit21_sp500)}
+\CommentTok{# standardized residuals}
+\KeywordTok{tsdisplay}\NormalTok{((att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals}\OperatorTok{*}\NormalTok{att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals)}\OperatorTok{/}\NormalTok{att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{var,}
+          \DataTypeTok{main =} \StringTok{"Standardized Residuals for GARCH(2,1)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+From this, we can also see that the standardized squared residuals is
+white noise. Thus, we use GARCH(2,1).
+
+\subsubsection{c. Respective Residuals}\label{c.-respective-residuals}
+
+\paragraph{USD/IDR model residuals}\label{usdidr-model-residuals}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals }\OperatorTok{~}\StringTok{ }\NormalTok{att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values,}
+     \DataTypeTok{main =} \StringTok{"USD/IDR residuals using GARCH(4,1)"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Fitted values"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Residuals"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+\paragraph{S\&P500 model residuals}\label{sp500-model-residuals}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals }\OperatorTok{~}\StringTok{ }\NormalTok{att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{fitted.values,}
+     \DataTypeTok{main =} \StringTok{"S&P500 residuals using GARCH(2,1)"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Fitted values"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Residuals"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+The residuals for both data are pretty much randomly distributed. So our
+model is considerably good. Next, we can do further analysis on the ACF
+and PACF of the residuals.
+
+\subsubsection{e. ACF and PACF of
+residuals}\label{e.-acf-and-pacf-of-residuals}
+
+\paragraph{USD/IDR residuals}\label{usdidr-residuals}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+There is no significant spikes on both the ACF and PACF which show that
+the residuals follows white noise model. We can also check the residuals
+using Ljung-Box test with the null defined by:
+\[H_{0}:\rho_{1}=\rho_{2}=...=\rho_{k}=0\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{(att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  att_garch_usdidr$fit$residuals
+## X-squared = 0.10866, df = 1, p-value = 0.7417
+\end{verbatim}
+
+We failed to reject the null hypothesis. So there isn't enough evidence
+to say that the residuals are not white noise.
+
+\paragraph{S\&P 500 residuals}\label{sp-500-residuals}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tsdisplay}\NormalTok{(att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+Looking at ACF and PACF, it seems there are only single spikes at lag
+19. However, it is small so it should be safe to ignore it. For
+completeness, we run the Ljung-Box test.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{(att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{residuals, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  att_garch_sp500$fit$residuals
+## X-squared = 7.7541, df = 1, p-value = 0.005359
+\end{verbatim}
+
+Using alpha 0.1, we failed to reject the null hypothesis, both the
+residuals from our model follow white noise.
+
+\subsubsection{f. CUSUM}\label{f.-cusum}
+
+For testing the parameter stability, we calculate the CUSUM plot. The
+red band is the interval of the stability of model.
+
+\paragraph{USD/IDR}\label{usdidr}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{efp}\NormalTok{(att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{res }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/CUSUM usdidr-1.pdf}
+
+\paragraph{S\&P 500}\label{sp-500}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{efp}\NormalTok{(att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{res }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/CUSUM sp500-1.pdf}
+
+\subsubsection{g. Recursive Residuals}\label{g.-recursive-residuals}
+
+The other thing to consider in validating the model is to look at its
+recursive residuals.
+
+\paragraph{USD/IDR}\label{usdidr-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rec_usdidr =}\StringTok{ }\KeywordTok{recresid}\NormalTok{(att_garch_usdidr}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{res }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(rec_usdidr, }\DataTypeTok{pch =} \DecValTok{16}\NormalTok{, }\DataTypeTok{main =} \StringTok{"Recursive Residuals"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"Recres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/Recres usdidr-1.pdf}
+
+\paragraph{S\&P 500}\label{sp-500-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rec_sp500 =}\StringTok{ }\KeywordTok{recresid}\NormalTok{(att_garch_sp500}\OperatorTok{$}\NormalTok{fit}\OperatorTok{$}\NormalTok{res }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(rec_sp500, }\DataTypeTok{pch =} \DecValTok{16}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"Recres"}\NormalTok{, }\DataTypeTok{main =} \StringTok{"Recursive Residuals"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/recres sp500-1.pdf}
+
+\subsubsection{h. Diagnostic statistics}\label{h.-diagnostic-statistics}
+
+In conclusion, we derive ARMA (2,2) as our best model. This, in fact is
+better than ARMA (2,2) with S-AR (1) which was generated using
+auto.arima. This is because the AIC for ARMA (2,2) is smaller and the
+coefficient parameter for S-AR(1) is not statistically significant. The
+next thing we do is to fit the best GARCH model because the squared
+residuals still have spikes in ACF and PACF.
+
+By comparing AIC of all the combination p and q in GARCH (p,q), we get
+that GARCH(4,1) is the best for USD/IDR return and GARCH (2,1) is the
+best for S\&P 500 returns. Finally, the standardized residuals show no
+significant spikes in the plot of ACF and PACF.
+
+Seeing at the CUSUM, we see that the plot of graph for both S\&P500 and
+USD/IDR doesn't break the band. Which implies that our model is
+consistent. Furthermore, the recursive residuals also tell use that our
+model is valid.
+
+\subsubsection{i. Forecast}\label{i.-forecast}
+
+\paragraph{Forecast returns}\label{forecast-returns}
+
+\subparagraph{USD/IDR forecast}\label{usdidr-forecast}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_for_usdidr =}\StringTok{ }\KeywordTok{ugarchforecast}\NormalTok{(garchfit41_usdidr, }\DataTypeTok{data =} \OtherTok{NULL}\NormalTok{, }\DataTypeTok{n.ahead =} \DecValTok{12}\NormalTok{, }\DataTypeTok{n.roll =} \DecValTok{0}\NormalTok{, }\DataTypeTok{out.sample =} \DecValTok{0}\NormalTok{)}
+
+\CommentTok{# prediction}
+\NormalTok{mod_for_usdidr}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## *------------------------------------*
+## *       GARCH Model Forecast         *
+## *------------------------------------*
+## Model: sGARCH
+## Horizon: 12
+## Roll Steps: 0
+## Out of Sample: 0
+## 
+## 0-roll forecast [T0=May 2019]:
+##      Series Sigma
+## T+1  0.4060 1.952
+## T+2  0.3626 2.252
+## T+3  0.2178 2.510
+## T+4  0.1722 2.745
+## T+5  0.2509 2.962
+## T+6  0.3247 3.164
+## T+7  0.3079 3.354
+## T+8  0.2466 3.533
+## T+9  0.2262 3.703
+## T+10 0.2589 3.866
+## T+11 0.2907 4.022
+## T+12 0.2842 4.172
+\end{verbatim}
+
+Above is the 12 step-ahead forecast. To see what's those number really
+meant, plotting is nessesary.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(mod_for_usdidr, }\DataTypeTok{which =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/forecast usdidr plot-1.pdf}
+
+\subparagraph{S\&P 500 forecast}\label{sp-500-forecast}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_for_sp500 =}\StringTok{ }\KeywordTok{ugarchforecast}\NormalTok{(garchfit21_sp500, }\DataTypeTok{data =} \OtherTok{NULL}\NormalTok{, }\DataTypeTok{n.ahead =} \DecValTok{12}\NormalTok{, }\DataTypeTok{n.roll =} \DecValTok{0}\NormalTok{, }\DataTypeTok{out.sample =} \DecValTok{0}\NormalTok{)}
+
+\CommentTok{# prediction}
+\NormalTok{mod_for_sp500}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## *------------------------------------*
+## *       GARCH Model Forecast         *
+## *------------------------------------*
+## Model: sGARCH
+## Horizon: 12
+## Roll Steps: 0
+## Out of Sample: 0
+## 
+## 0-roll forecast [T0=May 2019]:
+##      Series Sigma
+## T+1  1.3746 3.606
+## T+2  0.9361 3.746
+## T+3  0.3347 3.734
+## T+4  1.1669 3.751
+## T+5  0.7867 3.761
+## T+6  0.6045 3.771
+## T+7  1.0146 3.780
+## T+8  0.7543 3.787
+## T+9  0.7315 3.794
+## T+10 0.9186 3.801
+## T+11 0.7613 3.806
+## T+12 0.7863 3.811
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# plot}
+\KeywordTok{plot}\NormalTok{(mod_for_sp500, }\DataTypeTok{which =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/forecast sp500-1.pdf}
+
+\paragraph{Forecast volatility}\label{forecast-volatility}
+
+Since we're using GARCH model for both series, we can forecast their
+volatility. \#\#\#\#\# Volatility for USD/IDR
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(mod_for_usdidr, }\DataTypeTok{which =} \DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\subparagraph{Volatility for S\&P 500}\label{volatility-for-sp-500}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(mod_for_sp500, }\DataTypeTok{which =} \DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-17-1.pdf}
+
+\subsubsection{i. VAR models}\label{i.-var-models}
+
+Now we are considering VAR models to test our hypothesis about
+relationship between data. We first find the best parameter p for VAR(p)
+using AIC and BIC.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#VAR}
+\NormalTok{varbind =}\StringTok{ }\KeywordTok{cbind}\NormalTok{(sp500_ret, usd_idr_ret)}
+
+\CommentTok{#Choose Best model by AIC BIC}
+\NormalTok{row =}\StringTok{ }\DecValTok{20}
+\NormalTok{aicbic =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{ncol=}\DecValTok{3}\NormalTok{, }\DataTypeTok{nrow=}\NormalTok{row)}
+\KeywordTok{colnames}\NormalTok{(aicbic) =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"p"}\NormalTok{, }\StringTok{"AIC"}\NormalTok{, }\StringTok{"BIC"}\NormalTok{)}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{row)\{}
+\NormalTok{  aicbic[i, }\DecValTok{1}\NormalTok{] =}\StringTok{ }\NormalTok{i}
+\NormalTok{  aicbic[i, }\DecValTok{2}\NormalTok{] =}\StringTok{ }\KeywordTok{AIC}\NormalTok{(}\KeywordTok{VAR}\NormalTok{(varbind, }\DataTypeTok{p=}\NormalTok{i))}
+\NormalTok{  aicbic[i, }\DecValTok{3}\NormalTok{] =}\StringTok{ }\KeywordTok{BIC}\NormalTok{(}\KeywordTok{VAR}\NormalTok{(varbind, }\DataTypeTok{p=}\NormalTok{i))}
+\NormalTok{\}}
+
+\NormalTok{aicbic}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        p      AIC      BIC
+##  [1,]  1 2274.074 2294.070
+##  [2,]  2 2263.980 2297.259
+##  [3,]  3 2249.508 2296.030
+##  [4,]  4 2237.086 2296.812
+##  [5,]  5 2227.394 2300.285
+##  [6,]  6 2217.490 2303.504
+##  [7,]  7 2209.034 2308.133
+##  [8,]  8 2192.192 2304.334
+##  [9,]  9 2177.475 2302.620
+## [10,] 10 2173.872 2311.979
+## [11,] 11 2169.332 2320.359
+## [12,] 12 2164.756 2328.662
+## [13,] 13 2159.433 2336.175
+## [14,] 14 2157.284 2346.819
+## [15,] 15 2148.768 2351.055
+## [16,] 16 2143.984 2358.979
+## [17,] 17 2139.605 2367.264
+## [18,] 18 2129.737 2370.017
+## [19,] 19 2119.909 2372.765
+## [20,] 20 2113.135 2378.523
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(aicbic[,}\DecValTok{1}\NormalTok{], aicbic[,}\DecValTok{2}\NormalTok{], }\DataTypeTok{xlab =} \StringTok{"p"}\NormalTok{, }\DataTypeTok{ylab=}\StringTok{"AIC"}\NormalTok{, }\DataTypeTok{main=}\StringTok{"AIC plot"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(aicbic[,}\DecValTok{1}\NormalTok{], aicbic[,}\DecValTok{3}\NormalTok{], }\DataTypeTok{xlab =} \StringTok{"p"}\NormalTok{, }\DataTypeTok{ylab=}\StringTok{"BIC"}\NormalTok{, }\DataTypeTok{main=}\StringTok{"BIC plot"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-18-2.pdf}
+
+From the AIC and BIC plots, we can see that the AIC plots are always
+decreasing even after p\textgreater{}20, thus we disregard this. Looking
+at the BIC plot, the smallest BIC is when p=1. Therefore, we use VAR(1).
+
+Then, we can make a VAR(1) model,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Choose VAR(1)}
+\NormalTok{varmod =}\StringTok{ }\KeywordTok{VAR}\NormalTok{(varbind, }\DataTypeTok{p=}\DecValTok{1}\NormalTok{)}
+\KeywordTok{summary}\NormalTok{(varmod)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## VAR Estimation Results:
+## ========================= 
+## Endogenous variables: sp500_ret, usd_idr_ret 
+## Deterministic variables: const 
+## Sample size: 207 
+## Log Likelihood: -1131.037 
+## Roots of the characteristic polynomial:
+## 0.1217 0.0827
+## Call:
+## VAR(y = varbind, p = 1)
+## 
+## 
+## Estimation results for equation sp500_ret: 
+## ========================================== 
+## sp500_ret = sp500_ret.l1 + usd_idr_ret.l1 + const 
+## 
+##                Estimate Std. Error t value Pr(>|t|)
+## sp500_ret.l1    0.10436    0.07407   1.409    0.160
+## usd_idr_ret.l1  0.03699    0.08145   0.454    0.650
+## const           0.47241    0.28682   1.647    0.101
+## 
+## 
+## Residual standard error: 4.065 on 204 degrees of freedom
+## Multiple R-Squared: 0.009637,    Adjusted R-squared: -7.214e-05 
+## F-statistic: 0.9926 on 2 and 204 DF,  p-value: 0.3724 
+## 
+## 
+## Estimation results for equation usd_idr_ret: 
+## ============================================ 
+## usd_idr_ret = sp500_ret.l1 + usd_idr_ret.l1 + const 
+## 
+##                Estimate Std. Error t value Pr(>|t|)  
+## sp500_ret.l1   -0.13237    0.06659  -1.988   0.0482 *
+## usd_idr_ret.l1 -0.14335    0.07322  -1.958   0.0516 .
+## const           0.33932    0.25785   1.316   0.1897  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## 
+## Residual standard error: 3.654 on 204 degrees of freedom
+## Multiple R-Squared: 0.02781, Adjusted R-squared: 0.01828 
+## F-statistic: 2.918 on 2 and 204 DF,  p-value: 0.0563 
+## 
+## 
+## 
+## Covariance matrix of residuals:
+##             sp500_ret usd_idr_ret
+## sp500_ret      16.524      -4.901
+## usd_idr_ret    -4.901      13.354
+## 
+## Correlation matrix of residuals:
+##             sp500_ret usd_idr_ret
+## sp500_ret      1.0000     -0.3299
+## usd_idr_ret   -0.3299      1.0000
+\end{verbatim}
+
+Looking at the summary, using USD/IDR Return to explain S\&P500 return,
+we can see that the parameters are not significant. Using S\&P500 to
+explain USD/IDR, we can only see a little bit of significance at α=0.1.
+
+Then, we look at the Impulse Response Function (IRF) of the datas,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#IRF}
+\NormalTok{irf_mod=}\KeywordTok{irf}\NormalTok{(varmod)}
+\KeywordTok{plot}\NormalTok{(irf_mod)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-20-1.pdf}
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-20-2.pdf}
+
+In the first graph, we can see that the effect of S\&P500 return shock
+on itself has a high effect at first, but decays quickly to zero until
+lag=2. The effect of S\&P500 return shock on USD/IDR return has some
+effect at first but again, decays to zero quickly.
+
+In the second graph, we can also observe that USD/IDR return shock does
+not have any significant effect at all on S\&P500 return. It has a high
+effect for itself but decays quickly to zero as well.
+
+\subsubsection{k. Granger-Causality}\label{k.-granger-causality}
+
+To analyze the causal effect of each variable to another, we perform a
+Granger-Causality test,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Granger test 1 (H0 = USD/IDR does not explain SP500)}
+\KeywordTok{grangertest}\NormalTok{(sp500_ret }\OperatorTok{~}\StringTok{ }\NormalTok{usd_idr_ret, }\DataTypeTok{order=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Granger causality test
+## 
+## Model 1: sp500_ret ~ Lags(sp500_ret, 1:1) + Lags(usd_idr_ret, 1:1)
+## Model 2: sp500_ret ~ Lags(sp500_ret, 1:1)
+##   Res.Df Df      F Pr(>F)
+## 1    204                 
+## 2    205 -1 0.2062 0.6503
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Granger test 2 (H0 = SP500 does not explain USD/IDR)}
+\KeywordTok{grangertest}\NormalTok{(usd_idr_ret }\OperatorTok{~}\StringTok{ }\NormalTok{sp500_ret, }\DataTypeTok{order=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Granger causality test
+## 
+## Model 1: usd_idr_ret ~ Lags(usd_idr_ret, 1:1) + Lags(sp500_ret, 1:1)
+## Model 2: usd_idr_ret ~ Lags(usd_idr_ret, 1:1)
+##   Res.Df Df      F  Pr(>F)  
+## 1    204                    
+## 2    205 -1 3.9516 0.04816 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+Seeing both results, the granger test cause does not have any
+significant in any H\textsubscript{0}. Although there is some
+significant in H\textsubscript{0}: S\&P500 return does not explain
+USD/IDR return, it is only at α=0.1 which is not considered strongly
+significant.
+
+\subsubsection{l. VAR vs.~ARIMA}\label{l.-var-vs.arima}
+
+Comparing the predictions of VAR and GARCH which includes ARIMA.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Forecast using VAR}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{forecast}\NormalTok{(varmod, }\DataTypeTok{h=}\DecValTok{12}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Forecast using GARCH(4,1) and GARCH(2,1) with ARMA(2,2)}
+\KeywordTok{plot}\NormalTok{(mod_for_sp500, }\DataTypeTok{which =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-22-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(mod_for_usdidr, }\DataTypeTok{which =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project-2_files/figure-latex/unnamed-chunk-22-3.pdf}
+
+\subsection{III. Conclusion}\label{iii.-conclusion}
+
+Looking at the graphs, we can see more fluctuations in the GARCH
+forecast. This may be because the VAR model is not that good as USD/IDR
+return and S\&P500 return does not really explain each other. This is
+contradictory to our initial prediciton about the returns. S\&P500
+return does not explain fully the USD/IDR return because there are still
+a lot of macroeconomics tools that we missed in this project.
+Furthermore, S\&P500 return itself may not be a perfect representation
+of US Gross Domestic Product (GDP) which may be more accurate in
+comparing with USD/IDR return.
+
+\subsection{IV. Reference}\label{iv.-reference}
+
+All datas were downloaded from Yahoo Finance.
+
+\end{document}
