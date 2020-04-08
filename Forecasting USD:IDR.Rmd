@@ -1,0 +1,581 @@
+---
+title: "Forecasting USD/IDR exchange rate"
+author: "Kelvin Christian, Kristoffer Chandra, Vincent Widiaman"
+date: "May 28, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##I. Introduction 
+
+The data we choose to analyze is the currency exchange of US Dollar with Indonesian Rupiah (Indonesian Rupiah per 1 US dollar). We will also use the data of S&P 500 as the gauge to measure the development of the U.S. economy. The reason we choose S&P 500 is because it can represent the condition of the U.S. economy. Our hypothesis says that the increase in the dollar price in rupiah is moderately correlated with the growth of S&P 500 index. 
+
+##II. Results
+
+Import the library for forecasting
+```{r library, warning=FALSE, collapse=TRUE, message = FALSE}
+library(quantmod)
+library(ggplot2)
+library(forecast)
+library(vars)
+library(lmtest)
+library(timeSeries)
+library(rugarch)
+library(tseries)
+library(Metrics)
+library(strucchange)
+```
+
+
+###a. Time Series plot 
+
+Using getSymbols function to download the daily data from the Yahoo finance. The data that we'll be analyzing is the monthly return data. So, we need to first convert from daily prices to monthly return time series, and calculate the return.
+```{r download data, warning=FALSE, message=FALSE}
+#Get necessary data. We will convert the data to monthly data for compatibility
+usd_idr <- getSymbols("IDR=X",auto.assign = FALSE, from = as.Date("01/01/2002", format = "%m/%d/%Y"), to = as.Date("05/28/2019", format = "%m/%d/%Y"))[,6]
+usd_idr <- to.monthly(usd_idr)[,4]
+
+sp500 <- getSymbols("^GSPC",auto.assign = FALSE, from = as.Date("01/01/2002", format = "%m/%d/%Y"), to = as.Date("05/28/2019", format = "%m/%d/%Y"))[,6]
+sp500 <- to.monthly(sp500)[,4]
+
+#Convert Data to time series and calculate returns
+usd_idr_ts <- ts(usd_idr, start = 2002, freq = 12)
+sp500_ts <- ts(sp500, start = 2002, freq = 12)
+
+usd_idr_ret=100*(diff(usd_idr_ts)/lag(usd_idr_ts, -1))
+sp500_ret=100*(diff(sp500_ts)/lag(sp500_ts, -1))
+
+```
+
+
+Plot the data to get a picture of the return movement
+```{r plot}
+
+# plot for USD/IDR exchange rate (monthly)
+plot(usd_idr_ret, main = "Monthly return of dollars in Indonesian rupiah (IDR)") 
+
+# plot for S&P500 (monthly)
+plot(sp500_ret, main = "S&P500 monthly return") 
+```
+
+Since we are analyzing combined data, it is reasonable to plot both time series in one plot. In order to do that, we need to standardize the return first so they could fit together.
+
+```{r combined plot}
+plot((usd_idr_ret-mean(usd_idr_ret))/sd(usd_idr_ret), main = "USD/IDR vs. S&P 500 returns", ylab = "Returns")
+lines((sp500_ret-mean(sp500_ret))/sd(sp500_ret), col = "red")
+```
+
+Looking at this combined plot, we can see that at year 2009, the returns for S&P 500 spikes down while the returns for USD/IDR spikes up. We initially predicted that the return of S&P 500 may explain the return of USD/IDR in a direct relationship. But this plot contradicts our initial assumption because the returns of dollar price spikes up when the returns of S&P 500 spikes down. They seem to have an inverse relationship.
+
+Then, we now consider the plot of ACF and PACF for both USD/IDR and S&P 500 returns to do further analysis and forecast.
+```{r tsdisplay usd/idr}
+tsdisplay(usd_idr_ret, main = "USD/IDR Returns")
+```
+
+Even though it looks like white noise, we can see that the ACF and PACF for the USD/IDR spikes at lag 2 while spikes at the other lags are not different from 0. Thus, it is reasonable to consider ARMA(2,2) as a good model for now. 
+
+```{r tsdisplay s&p500}
+tsdisplay(sp500_ret, main="S&P500 Returns")
+```
+
+The ACF and PACF for S&P500 monthly returns don't have any significant spikes at all lags. Our conclusion is that the returns follows white noise model.
+
+###b. Model fitting
+
+Since the data that we're dealing with is the monthly returns data, it is covariance stationary. They have the same mean, or we could say that they have mean reversion. So both of our data doesn't have any significant linear trend. The only thing we consider is the seasonality and cycles component. Now, we will explore the model to find the best fit.
+
+#### Model for USD/IDR returns
+
+##### Periodic trend
+
+The first model that we propose is the periodic trend for detecting seasonality. We created the variable time as a predictor and we use linear regression of returns with respect to sin and cos of time.
+
+```{r periodic model usd/idr}
+# specify the index
+t = seq(2002 + (1/12), 2019 + (4/12), length = length(usd_idr_ret))
+
+# periodic
+mod_period_usdidr <- lm(usd_idr_ret ~ I(sin(2*pi*t)) + I(cos(2*pi*t)))
+summary(mod_period_usdidr)
+```
+
+```{r periodic usd/idr plot}
+plot(usd_idr_ret, main = "USD/IDR returns")
+lines(mod_period_usdidr$fit ~ t, col = "red")
+```
+
+
+The result is not statistically significant, independently and jointly.
+
+##### Seasonal Dummy trend
+
+Since we're using the monthly data, we could use dummy variable for each month to know whether some month is significantly different from the others.
+
+```{r seasonal model usd/idr}
+mod_seasonal_usdidr <- tslm(usd_idr_ret ~ season)
+summary(mod_seasonal_usdidr)
+```
+
+```{r seasonal usd/idr plot}
+plot(usd_idr_ret, main = "USD/IDR returns")
+lines(mod_seasonal_usdidr$fit, col = "red")
+```
+
+
+All seasonal dummy variables are not statistically significant and the joint hypothesis test is also not statistically significant, therefore we conclude that there is no seasonal component in USD/IDR returns.
+
+
+##### ARMA (2,2)
+
+Using our first hypothesis, we can try to fit ARMA(2,2) because the ACF and PACF spikes at lag 2. The function that we're using is arima function. However, the model object from arima function doesn't tell us the significant level of the coefficient. So we can create a function to analyze the significant level before summarizing the model.
+
+```{r ARMA usd/idr model}
+# function to give summary for arima model
+arima_summary <- function(model){
+  coef_arma <- model$coef # coefficient
+  se_arma <- sqrt(diag(model$var.coef)) # se
+  t_arma <- coef_arma / se_arma # t stats
+  p_arma <- pnorm(abs(t_arma), lower.tail = FALSE) # p values
+  cbind("coef" = coef_arma, "se" = se_arma, "t" = t_arma, "p" = round(p_arma, 5))
+}
+
+mod_arma_22_usdidr <- arima(usd_idr_ret, order = c(2,0,2)) 
+arima_summary(mod_arma_22_usdidr)
+```
+
+It turns out that ARMA (2,2) does a great job. We can see that all the coefficients are statistically significant from the p-values.
+
+##### ARMA (p,q)
+Another thing to consider is fitting another combination (p,q) of ARMA model. To do that, we use for loop to fit all combinations of the order of ARMA, then we compare the model using AIC as our measurement. We first creates an empty matrix to store the AIC for each combination.
+
+```{r ARMA combinations, message = FALSE, warning=FALSE}
+#For loop to find best ARMA(p,q)
+m = 4 # combination for p = 1,2,3,4 with q = 1,2,3,4
+
+AIC_mat <- matrix(NA, ncol = m, nrow = m)
+rownames(AIC_mat) <- 1:m
+colnames(AIC_mat) <- 1:m
+
+for(i in 1:m){
+  for(j in 1:m){
+    AIC_mat[i,j] <- arima(usd_idr_ret, order = c(i,0,j))$aic
+  }
+}
+
+
+AIC_mat # All AIC's 
+
+```
+
+We can see that ARMA(2,2) has the smallest AIC compared to the others, we could also try ARMA(2,3) and ARMA(3,2) because their AIC are closed compared to ARMA(2,2)
+
+ARMA(2,3)
+```{r ARMA(2,3)}
+mod_arma_23_usdidr <- arima(usd_idr_ret, order = c(2,0,3)) 
+arima_summary(mod_arma_23_usdidr) 
+```
+
+Here the coefficient for ma3 is not significant.
+
+ARMA(3,2)
+```{r ARMA(3,2)}
+mod_arma_32_usdidr <- arima(usd_idr_ret, order = c(3,0,2)) 
+arima_summary(mod_arma_32_usdidr) 
+```
+
+And here, the coefficient for ar3 is not statistically significant.
+
+For now, we conclude that ARMA(2,2) is the best model because all variables are statistically significant.
+
+##### Auto Arima
+
+To check what R think the best model is, we can use auto arima function. 
+```{r autoarima usd/idr}
+mod_autoarima_usdidr = auto.arima(usd_idr_ret)
+mod_autoarima_usdidr
+```
+
+The auto arima agrees with ARMA(2,2) with additional seasonal AR(1). Next, we check the significant level for the seasonal ar coefficient.
+```{r arima summary}
+arima_summary(mod_autoarima_usdidr)
+```
+
+The s-ar(1) coefficient is not statistically significant. We could also compare the AIC with ARMA(2,2) to check which one is better.
+
+```{r AIC}
+AIC(mod_arma_22_usdidr, mod_autoarima_usdidr)
+```
+
+The AIC shows that ARMA(2,2) is still a better model than ARMA(2,2) + S-AR(1). Therefore we will use ARMA(2,2) model for USD/IDR returns.
+
+
+#### Model for S&P500 returns
+
+Since the ACF and PACF of this data tells us that it is white noise, we can't make a guess. However, since the two dataset are somewhat have similar characteristic, we would choose ARMA(2,2) for the S&P500 as well.
+
+##### ARMA(2,2)
+
+We analyze the significance of ARMA(2,2) coefficients in the similar way as the USD/IDR,
+```{r}
+mod_arma_22_sp500 <- arima(sp500_ret, order = c(2,0,2)) 
+summary(mod_arma_22_sp500)
+```
+
+The standard errors are NaN in this case so we cannot analyze the significance of each coefficient parameters.
+
+##### Auto Arima
+
+Then, we cross-check with auto arima to see which one is better,
+```{r}
+mod_autoarima_sp500 = auto.arima(sp500_ret)
+mod_autoarima_sp500
+arima_summary(mod_autoarima_sp500)
+```
+
+We can see that the coefficients for AR and MA order 1,2 are statistically significant. However, S-AR(1) is not statistically significant. ARMA(2,2) may be a good model.
+
+#### Analyzing GARCH(p,q)
+
+Although our current model, ARMA(2,2), may be good, we still dont know if GARCH is needed to better fit the model. 
+
+##### GARCH(p,q) for USD/IDR
+
+First, we look at the residuals of the USD/IDR ARMA(2,2),
+```{r}
+tsdisplay(mod_arma_22_usdidr$res)
+```
+
+It seems that the residuals are all almost zero which is a good signal. Now, we square the residuals to detect any need for GARCH.
+
+```{r}
+#Analyze GARCH
+tsdisplay(mod_arma_22_usdidr$res*mod_arma_22_usdidr$res)
+```
+
+We can see that in the squared residuals, there are still spikes which indicates the need for GARCH model. We now find the best p and q for GARCH(p,q) using for loop and compare their MSE and MAE.
+```{r}
+#Use for loop to find best GARCH(p,q)
+m <- 6
+garch_mse_mat <- matrix(NA, ncol = m, nrow = m)
+garch_mae_mat <- matrix(NA, ncol = m, nrow = m)
+for (i in 1:m){
+  for(j in 1:m){
+    model <- ugarchspec(
+      variance.model = list(model = "sGARCH", garchOrder = c(i, j)),
+      mean.model = list(armaOrder = c(2, 2), include.mean = TRUE),
+      distribution.model = "sstd")
+    
+    modelfit <- ugarchfit(spec=model,data=usd_idr_ret)
+    
+    a <- attributes(modelfit)
+    
+    garch_mse_mat[i,j] <- mse(usd_idr_ret, a$fit$fitted.values)
+    garch_mae_mat[i,j] <- mae(usd_idr_ret, a$fit$fitted.values)
+    
+  }
+}
+
+garch_mae_mat
+garch_mse_mat
+
+which(garch_mae_mat == min(garch_mae_mat), arr.ind = TRUE)
+which(garch_mse_mat == min(garch_mse_mat), arr.ind = TRUE)
+```
+
+From the for loop summary, we find that the best value for p,q is 4 and 1 respectively. Thus, we use GARCH(4,1) for the model.
+```{r}
+garch_mod=ugarchspec(
+  variance.model = list(model = "sGARCH", garchOrder = c(4, 1)),
+  mean.model = list(armaOrder = c(2, 2), include.mean = TRUE),
+  distribution.model = "sstd")
+
+# Fit the model
+garchfit41_usdidr = ugarchfit(spec=garch_mod, data=usd_idr_ret)
+garchfit41_usdidr
+
+att_garch_usdidr = attributes(garchfit41_usdidr)
+ # standardized residuals
+tsdisplay((att_garch_usdidr$fit$residuals*att_garch_usdidr$fit$residuals)/att_garch_usdidr$fit$var,
+          main = "Standardized Residuals for GARCH(4,1)")
+```
+
+From the ACF PACF we can clearly see that the GARCH model eliminates the remaining spikes of the residual. Thus, we use GARCH(4,1)
+
+##### GARCH(p,q) for S&P500
+
+Now, we will find the best GARCH(p,q) value for S&P500 using the same approach. First, we look at the residual and squared residuals.
+```{r}
+tsdisplay(mod_arma_22_usdidr$res)
+tsdisplay(mod_arma_22_usdidr$res*mod_arma_22_usdidr$res)
+```
+
+We see similar pattern as before, there are still spikes in the model. Thus, we look for GARCH.
+```{r}
+m <- 6
+garch_mse_mat <- matrix(NA, ncol = m, nrow = m)
+garch_mae_mat <- matrix(NA, ncol = m, nrow = m)
+for (i in 1:m){
+  for(j in 1:m){
+    model <- ugarchspec(
+      variance.model = list(model = "sGARCH", garchOrder = c(i, j)),
+      mean.model = list(armaOrder = c(2, 2), include.mean = TRUE),
+      distribution.model = "sstd")
+    
+    modelfit <- ugarchfit(spec=model,data=sp500_ret)
+    
+    a <- attributes(modelfit)
+    
+    garch_mse_mat[i,j] <- mse(sp500_ret, a$fit$fitted.values)
+    garch_mae_mat[i,j] <- mae(sp500_ret, a$fit$fitted.values)
+    
+  }
+}
+
+garch_mae_mat
+garch_mse_mat
+
+which(garch_mae_mat == min(garch_mae_mat), arr.ind = TRUE)
+which(garch_mse_mat == min(garch_mse_mat), arr.ind = TRUE)
+```
+
+We can see that the smallest error in the analysis above is at GARCH(2,1) and GARCH(2,6). Thus, in this case we use GARCH(2,1) as it is a simpler model with less parameters.
+```{r}
+garch_mod=ugarchspec(
+  variance.model = list(model = "sGARCH", garchOrder = c(2, 1)),
+  mean.model = list(armaOrder = c(2, 2), include.mean = TRUE),
+  distribution.model = "sstd")
+
+# Fit the model
+garchfit21_sp500 = ugarchfit(spec=garch_mod, data=sp500_ret)
+garchfit21_sp500
+
+
+att_garch_sp500 = attributes(garchfit21_sp500)
+# standardized residuals
+tsdisplay((att_garch_sp500$fit$residuals*att_garch_sp500$fit$residuals)/att_garch_sp500$fit$var,
+          main = "Standardized Residuals for GARCH(2,1)")
+```
+
+From this, we can also see that the standardized squared residuals is white noise. Thus, we use GARCH(2,1).
+
+
+###c. Respective Residuals
+
+#### USD/IDR model residuals
+```{r}
+plot(att_garch_usdidr$fit$residuals ~ att_garch_usdidr$fit$fitted.values,
+     main = "USD/IDR residuals using GARCH(4,1)",
+     xlab = "Fitted values",
+     ylab = "Residuals")
+```
+
+#### S&P500 model residuals
+```{r}
+plot(att_garch_sp500$fit$residuals ~ att_garch_sp500$fit$fitted.values,
+     main = "S&P500 residuals using GARCH(2,1)",
+     xlab = "Fitted values",
+     ylab = "Residuals")
+```
+
+The residuals for both data are pretty much randomly distributed. So our model is considerably good. Next, we can do further analysis on the ACF and PACF of the residuals.
+
+###e. ACF and PACF of residuals
+
+#### USD/IDR residuals
+```{r}
+tsdisplay(att_garch_usdidr$fit$residuals)
+```
+
+There is no significant spikes on both the ACF and PACF which show that the residuals follows white noise model. We can also check the residuals using Ljung-Box test with the null defined by: $$H_{0}:\rho_{1}=\rho_{2}=...=\rho_{k}=0$$
+
+```{r}
+Box.test(att_garch_usdidr$fit$residuals, type = "Ljung-Box")
+```
+We failed to reject the null hypothesis. So there isn't enough evidence to say that the residuals are not white noise.
+
+#### S&P 500 residuals
+
+```{r}
+tsdisplay(att_garch_sp500$fit$residuals)
+```
+
+Looking at ACF and PACF, it seems there are only single spikes at lag 19. However, it is small so it should be safe to ignore it. For completeness, we run the Ljung-Box test.
+
+```{r}
+Box.test(att_garch_sp500$fit$residuals, type = "Ljung-Box")
+```
+
+Using alpha 0.1, we failed to reject the null hypothesis, both the residuals from our model follow white noise. 
+
+
+###f. CUSUM
+
+For testing the parameter stability, we calculate the CUSUM plot. The red band is the interval of the stability of model.
+
+#### USD/IDR
+```{r CUSUM usdidr}
+plot(efp(att_garch_usdidr$fit$res ~ 1))
+```
+
+#### S&P 500
+```{r CUSUM sp500}
+plot(efp(att_garch_sp500$fit$res ~ 1))
+```
+
+
+###g. Recursive Residuals
+
+The other thing to consider in validating the model is to look at its recursive residuals. 
+
+#### USD/IDR
+```{r Recres usdidr}
+rec_usdidr = recresid(att_garch_usdidr$fit$res ~ 1)
+plot(rec_usdidr, pch = 16, main = "Recursive Residuals", ylab = "Recres")
+```
+
+#### S&P 500
+```{r recres sp500}
+rec_sp500 = recresid(att_garch_sp500$fit$res ~ 1)
+plot(rec_sp500, pch = 16, ylab = "Recres", main = "Recursive Residuals")
+```
+
+
+###h. Diagnostic statistics
+
+In conclusion, we derive ARMA (2,2) as our best model. This, in fact is better than ARMA (2,2) with S-AR (1) which was generated using auto.arima. This is because the AIC for ARMA (2,2) is smaller and the coefficient parameter for S-AR(1) is not statistically significant. The next thing we do is to fit the best GARCH model because the squared residuals still have spikes in ACF and PACF. 
+
+By comparing AIC of all the combination p and q in GARCH (p,q), we get that GARCH(4,1) is the best for USD/IDR return and GARCH (2,1) is the best for S&P 500 returns. Finally, the standardized residuals show no significant spikes in the plot of ACF and PACF. 
+
+Seeing at the CUSUM, we see that the plot of graph for both S&P500 and USD/IDR doesn't break the band. Which implies that our model is consistent. Furthermore, the recursive residuals also tell use that our model is valid.
+
+
+###i. Forecast
+
+#### Forecast returns
+##### USD/IDR forecast
+
+```{r forecast usdidr}
+mod_for_usdidr = ugarchforecast(garchfit41_usdidr, data = NULL, n.ahead = 12, n.roll = 0, out.sample = 0)
+
+# prediction
+mod_for_usdidr
+```
+
+Above is the 12 step-ahead forecast. To see what's those number really meant, plotting is nessesary.
+
+```{r forecast usdidr plot}
+plot(mod_for_usdidr, which = 1)
+```
+
+##### S&P 500 forecast
+
+```{r forecast sp500}
+mod_for_sp500 = ugarchforecast(garchfit21_sp500, data = NULL, n.ahead = 12, n.roll = 0, out.sample = 0)
+
+# prediction
+mod_for_sp500
+
+# plot
+plot(mod_for_sp500, which = 1)
+```
+
+
+#### Forecast volatility
+
+Since we're using GARCH model for both series, we can forecast their volatility.
+##### Volatility for USD/IDR
+```{r}
+plot(mod_for_usdidr, which = 3)
+```
+
+##### Volatility for S&P 500
+```{r}
+plot(mod_for_sp500, which = 3)
+```
+
+
+###i. VAR models
+
+Now we are considering VAR models to test our hypothesis about relationship between data. We first find the best parameter p for VAR(p) using AIC and BIC.
+
+```{r}
+#VAR
+varbind = cbind(sp500_ret, usd_idr_ret)
+
+#Choose Best model by AIC BIC
+row = 20
+aicbic = matrix(NA, ncol=3, nrow=row)
+colnames(aicbic) = c("p", "AIC", "BIC")
+
+for(i in 1:row){
+  aicbic[i, 1] = i
+  aicbic[i, 2] = AIC(VAR(varbind, p=i))
+  aicbic[i, 3] = BIC(VAR(varbind, p=i))
+}
+
+aicbic
+plot(aicbic[,1], aicbic[,2], xlab = "p", ylab="AIC", main="AIC plot")
+plot(aicbic[,1], aicbic[,3], xlab = "p", ylab="BIC", main="BIC plot")
+```
+
+From the AIC and BIC plots, we can see that the AIC plots are always decreasing even after p>20, thus we disregard this. Looking at the BIC plot, the smallest BIC is when p=1. Therefore, we use VAR(1).
+
+Then, we can make a VAR(1) model,
+```{r}
+#Choose VAR(1)
+varmod = VAR(varbind, p=1)
+summary(varmod)
+```
+
+Looking at the summary, using USD/IDR Return to explain S&P500 return, we can see that the parameters are not significant. Using S&P500 to explain USD/IDR, we can only see a little bit of significance at α=0.1.
+
+Then, we look at the Impulse Response Function (IRF) of the datas,
+```{r}
+#IRF
+irf_mod=irf(varmod)
+plot(irf_mod)
+```
+
+In the first graph, we can see that the effect of S&P500 return shock on itself has a high effect at first, but decays quickly to zero until lag=2. The effect of S&P500 return shock on USD/IDR return has some effect at first but again, decays to zero quickly.
+
+In the second graph, we can also observe that USD/IDR return shock does not have any significant effect at all on S&P500 return. It has a high effect for itself but decays quickly to zero as well.
+
+###k. Granger-Causality
+
+To analyze the causal effect of each variable to another, we perform a Granger-Causality test,
+```{r}
+#Granger test 1 (H0 = USD/IDR does not explain SP500)
+grangertest(sp500_ret ~ usd_idr_ret, order=1)
+
+#Granger test 2 (H0 = SP500 does not explain USD/IDR)
+grangertest(usd_idr_ret ~ sp500_ret, order=1)
+```
+
+Seeing both results, the granger test cause does not have any significant in any H~0~. Although there is some significant in H~0~: S&P500 return does not explain USD/IDR return, it is only at α=0.1 which is not considered strongly significant. 
+
+###l. VAR vs. ARIMA
+
+Comparing the predictions of VAR and GARCH which includes ARIMA.
+```{r}
+#Forecast using VAR
+plot(forecast(varmod, h=12))
+
+#Forecast using GARCH(4,1) and GARCH(2,1) with ARMA(2,2)
+plot(mod_for_sp500, which = 1)
+plot(mod_for_usdidr, which = 1)
+```
+
+## III. Conclusion
+Looking at the graphs, we can see more fluctuations in the GARCH forecast. This may be because the VAR model is not that good as USD/IDR return and S&P500 return does not really explain each other. This is contradictory to our initial prediciton about the returns. S&P500 return does not explain fully the USD/IDR return because there are still a lot of macroeconomics tools that we missed in this project. Furthermore, S&P500 return itself may not be a perfect representation of US Gross Domestic Product (GDP) which may be more accurate in comparing with USD/IDR return.
+
+##IV. Reference
+
+All datas were downloaded from Yahoo Finance.
+
+
